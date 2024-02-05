@@ -6,7 +6,7 @@
 /*   By: okarejok <okarejok@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 15:15:29 by okarejok          #+#    #+#             */
-/*   Updated: 2024/01/26 20:09:34 by okarejok         ###   ########.fr       */
+/*   Updated: 2024/01/29 17:15:42 by okarejok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,14 +42,11 @@ int	main(int argc, char *argv[], char **envp)
 {
 	t_pipex	pipex;
 
+	pipex.cmd_args = NULL;
+	pipex.cmd = NULL;
+	pipex.paths = NULL;
 	if (argc != 5 || !envp)
 		return (1);
-	pipex.infile = open(argv[1], O_RDONLY);
-	///if (pipex.infile < 0)
-		//error_exit(ERROR_INFILE, 1);
-	pipex.outfile = open(argv[argc - 1], O_CREAT | O_RDWR | O_TRUNC, 0644);
-	if (pipex.outfile < 0)
-		error_exit(ERROR_OUTFILE, 1);
 	if (pipe(pipex.pipe) < 0)
 		error_exit(ERROR_PIPE, 1);
 	find_paths(&pipex, envp);

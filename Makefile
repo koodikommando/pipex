@@ -6,6 +6,7 @@ SOURCES = pipex.c \
 			child_processes.c \
 			get_next_line/get_next_line.c \
 			get_next_line/get_next_line_utils.c \
+			pipex_split.c
 			
 OBJECTS = $(SOURCES:.c=.o)
 

@@ -6,7 +6,7 @@
 /*   By: okarejok <okarejok@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/03 15:03:47 by okarejok          #+#    #+#             */
-/*   Updated: 2024/01/26 19:24:26 by okarejok         ###   ########.fr       */
+/*   Updated: 2024/02/05 18:25:24 by okarejok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,8 @@ void	first_child(t_pipex *pipex, char **argv, char **envp);
 void	second_child(t_pipex *pipex, char **argv, char **envp);
 void	error_exit(char *error, int errcode);
 void	free_child(t_pipex *pipex);
+void	error_message(char *error);
+char	**pipex_split(char const *s, char const c);
 
 
 #endif

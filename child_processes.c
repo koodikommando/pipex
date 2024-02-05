@@ -6,13 +6,13 @@
 /*   By: okarejok <okarejok@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 15:55:35 by okarejok          #+#    #+#             */
-/*   Updated: 2024/01/26 19:57:52 by okarejok         ###   ########.fr       */
+/*   Updated: 2024/02/05 18:32:29 by okarejok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-static char	*get_command(char **paths, char *cmd)
+static char	*get_command(char **paths, char *cmd, t_pipex *pipex)
 {
 	int		i;
 	char	*aux;
@@ -32,23 +32,40 @@ static char	*get_command(char **paths, char *cmd)
 		free(command);
 		i++;
 	}
+	if (access(pipex->cmd_args[0], 0) == 0)
+		return (ft_strdup(pipex->cmd_args[0]));
 	return (NULL);
 }
 
-void	first_child(t_pipex *pipex, char **argv, char **envp)
+static char	**get_command_args(t_pipex *pipex, char *argv)
 {
-	pipex->cmd_args = ft_split(argv[2], ' ');
-	if (pipex->cmd_args == NULL)
+	char	**cmd_args;
+
+	cmd_args = pipex_split(argv, ' ');
+	if (cmd_args == NULL)
 	{
 		free_child(pipex);
 		error_exit(ERROR_MALLOC, 1);
 	}
-	if (pipex->cmd_args[0] == NULL)
+	if (cmd_args == NULL)
 	{
 		free_child(pipex);
 		error_exit(ERROR_CMD, 1);
 	}
-	pipex->cmd = get_command(pipex->paths, pipex->cmd_args[0]);
+	printf("%s", cmd_args[0]);
+	return (cmd_args);
+}
+
+void	first_child(t_pipex *pipex, char **argv, char **envp)
+{
+	pipex->infile = open(argv[1], O_RDONLY);
+	if (pipex->infile < 0)
+	{
+		free_child(pipex);
+		error_exit(ERROR_INFILE, 1);
+	}
+	pipex->cmd_args = get_command_args(pipex, argv[2]);
+	pipex->cmd = get_command(pipex->paths, pipex->cmd_args[0], pipex);
 	if (!pipex->cmd)
 		error_exit(ERROR_CMD, 127);
 	if (dup2(pipex->pipe[1], STDOUT_FILENO) < 0)
@@ -56,7 +73,11 @@ void	first_child(t_pipex *pipex, char **argv, char **envp)
 	if (dup2(pipex->infile, STDIN_FILENO) < 0)
 		error_exit(ERROR_DUP, 1);
 	close(pipex->pipe[0]);
-	execve(pipex->cmd, pipex->cmd_args, envp);
+	if (execve(pipex->cmd, pipex->cmd_args, envp) == -1)
+	{
+		free_child(pipex);
+		error_exit("Execve failed", 1);
+	}
 	free_child(pipex);
 	error_exit(ERROR_CMD, 127);
 	return ;
@@ -64,18 +85,14 @@ void	first_child(t_pipex *pipex, char **argv, char **envp)
 
 void	second_child(t_pipex *pipex, char **argv, char **envp)
 {
-	pipex->cmd_args = ft_split(argv[3], ' ');
-	if (pipex->cmd_args == NULL)
+	pipex->outfile = open(argv[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
+	if (pipex->outfile == -1)
 	{
 		free_child(pipex);
-		error_exit(ERROR_MALLOC, 1);
+		error_exit(ERROR_OUTFILE, 1);
 	}
-	if (pipex->cmd_args[0] == NULL)
-	{
-		free_child(pipex);
-		error_exit(ERROR_CMD, 1);
-	}
-	pipex->cmd = get_command(pipex->paths, pipex->cmd_args[0]);
+	pipex->cmd_args = get_command_args(pipex, argv[3]);
+	pipex->cmd = get_command(pipex->paths, pipex->cmd_args[0], pipex);
 	if (!pipex->cmd)
 		error_exit(ERROR_CMD, 127);
 	if (dup2(pipex->pipe[0], STDIN_FILENO) < 0)
@@ -83,7 +100,11 @@ void	second_child(t_pipex *pipex, char **argv, char **envp)
 	if (dup2(pipex->outfile, STDOUT_FILENO) < 0)
 		error_exit(ERROR_DUP, 1);
 	close(pipex->pipe[1]);
-	execve(pipex->cmd, pipex->cmd_args, envp);
+	if (execve(pipex->cmd, pipex->cmd_args, envp) == -1)
+	{
+		free_child(pipex);
+		error_exit("Execve failed", 1);
+	}
 	free_child(pipex);
 	error_exit(ERROR_CMD, 127);
 	return ;

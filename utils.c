@@ -6,7 +6,7 @@
 /*   By: okarejok <okarejok@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 15:56:08 by okarejok          #+#    #+#             */
-/*   Updated: 2024/01/26 18:52:18 by okarejok         ###   ########.fr       */
+/*   Updated: 2024/01/29 17:23:46 by okarejok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,21 +56,27 @@ void	free_child(t_pipex *pipex)
 	int	j;
 
 	j = 0;
-	while (pipex->cmd_args[j])
+	if (pipex->cmd)
+		free(pipex->cmd);
+	if (pipex->paths)
 	{
-		free(pipex->cmd_args[j]);
-		j++;
+		while (pipex->paths[j])
+		{
+			free(pipex->paths[j]);
+			j++;
+		}
+		free(pipex->paths);
 	}
-	free(pipex->cmd_args);
-	j = 0;
-	while (pipex->paths[j])
+	if (pipex->cmd_args)
 	{
-		free(pipex->paths[j]);
-		j++;
+		j = 0;
+		while (pipex->cmd_args[j])
+		{
+			free(pipex->cmd_args[j]);
+			j++;
+		}
+		free(pipex->cmd_args);
 	}
-	free(pipex->cmd);
-	free(pipex->paths);
-
 }
 
 void	error_exit(char *error, int errcode)
