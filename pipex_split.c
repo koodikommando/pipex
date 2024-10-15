@@ -6,7 +6,7 @@
 /*   By: okarejok <okarejok@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/05 16:34:59 by okarejok          #+#    #+#             */
-/*   Updated: 2024/02/05 19:42:35 by okarejok         ###   ########.fr       */
+/*   Updated: 2024/02/08 18:49:44 by okarejok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,12 +52,10 @@ static char	*allocate_mem(char const *s, int *i)
 	return (ft_substr(s, start, end - start));
 }
 
-static int	inside_quotes(char c, char *q)
+static int	inside_quotes(char const *s, char c, char *q)
 {
 	static char	save;
-	int			i;
 
-	i = 0;
 	if ((c == '\'' || c == '"') && *q == 0)
 	{
 		save = c;
@@ -66,6 +64,8 @@ static int	inside_quotes(char c, char *q)
 	}
 	else if ((c == '\'' || c == '"') && save == c)
 	{
+		if (ft_strrchr(s, save) != s)
+			return (1);
 		save = 0;
 		*q = 0;
 		return (0);
@@ -76,19 +76,17 @@ static int	inside_quotes(char c, char *q)
 static int	count_words(char const *s, char const c)
 {
 	int		in_wrd;
-	size_t	i;
 	int		wrd_count;
 	char	quote;
 
 	wrd_count = 0;
-	i = 0;
 	in_wrd = 0;
 	quote = 0;
-	while (s[i])
+	while (*s)
 	{
-		if (s[i] == c && !quote)
+		if (*s == c && !quote)
 			in_wrd = 0;
-		else if (inside_quotes(s[i], &quote))
+		else if (inside_quotes(s, *s, &quote))
 		{
 			in_wrd = 1;
 			wrd_count++;
@@ -98,7 +96,7 @@ static int	count_words(char const *s, char const c)
 			in_wrd = 1;
 			wrd_count++;
 		}
-		i++;
+		s++;
 	}
 	return (wrd_count);
 }
@@ -125,19 +123,6 @@ char	**pipex_split(char const *s, char const c)
 		}
 		j++;
 	}
-	strings[count_words(s, c)] = NULL; 
+	strings[count_words(s, c)] = NULL;
 	return (strings);
 }
-/*
-int main(void)
-{
-	char	**splitted;
-
-	splitted = pipex_split("awk '{count ++} END {print count}'", ' ');
-	int i = 0;
-	while (splitted[i])
-	{
-		printf("%d: %s\n",i, splitted[i]);
-		i++;
-	}
-}*/

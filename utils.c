@@ -6,25 +6,25 @@
 /*   By: okarejok <okarejok@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 15:56:08 by okarejok          #+#    #+#             */
-/*   Updated: 2024/01/29 17:23:46 by okarejok         ###   ########.fr       */
+/*   Updated: 2024/10/15 18:38:24 by okarejok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	free_parent(t_pipex *pipex)
+static char	*ft_join_and_free(char *s1, char *s2)
 {
-	int	i;
+	char	*str;
 
-	i = 0;
-	close(pipex->infile);
-	close(pipex->outfile);
-	while (pipex->paths[i])
+	if (!s1)
 	{
-		free(pipex->paths[i]);
-		i++;
+		s1 = ft_calloc(1, 1);
+		if (!s1)
+			return (NULL);
 	}
-	free(pipex->paths);
+	str = ft_strjoin(s1, s2);
+	free(s1);
+	return (str);
 }
 
 void	find_paths(t_pipex *pipex, char **envp)
@@ -38,9 +38,13 @@ void	find_paths(t_pipex *pipex, char **envp)
 		if (!ft_strncmp(*envp, "PATH", 4))
 		{
 			paths = ft_split(*envp + 5, ':');
+			if (!paths)
+				error_exit(pipex, ERROR_MALLOC, 1);
 			while (paths[i])
 			{
-				paths[i] = ft_strjoin(paths[i], "/");
+				paths[i] = ft_join_and_free(paths[i], "/");
+				if (!paths[i])
+					error_exit(pipex, ERROR_MALLOC, 1);
 				i++;
 			}
 			pipex->paths = paths;
@@ -48,7 +52,7 @@ void	find_paths(t_pipex *pipex, char **envp)
 		}
 		envp++;
 	}
-	error_exit(ERROR_PATH, 1);
+	error_exit(pipex, ERROR_PATH, 1);
 }
 
 void	free_child(t_pipex *pipex)
@@ -79,8 +83,12 @@ void	free_child(t_pipex *pipex)
 	}
 }
 
-void	error_exit(char *error, int errcode)
+void	error_exit(t_pipex *pipex, char *error, int errcode)
 {
+	error = ft_strjoin("pipex: ", error);
 	perror(error);
+	free(error);
+	if (pipex->pid1 == 0 || pipex->pid2 == 0)
+		free_child(pipex);
 	exit(errcode);
 }
