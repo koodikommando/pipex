@@ -2,5 +2,7 @@ A 42 school project that replicates a simple version of the Unix pipeline behavi
 
 Usage:
 ./pipex infile cmd cmd outfile
+example:
+./pipex Makefile cat wc outfile
 
 Passing grade: 100
